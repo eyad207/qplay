@@ -20,7 +20,13 @@ export default function HostPage() {
   const [players, setPlayers] = useState<Player[]>([])
   const [answers, setAnswers] = useState<PlayerAnswer[]>([])
   const [timeLeft, setTimeLeft] = useState(0)
-  const [gameCode] = useState(() => Math.floor(Math.random() * 900000) + 100000)
+  const [gameCode, setGameCode] = useState('')
+
+  // Generate game code on client side to avoid hydration mismatch
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setGameCode((Math.floor(Math.random() * 900000) + 100000).toString())
+  }, [])
 
   // Audio refs
   const ongoingSoundRef = useRef<HTMLAudioElement | null>(null)
@@ -267,6 +273,15 @@ export default function HostPage() {
     'from-gray-300 to-gray-400', // 2nd
     'from-orange-600 to-orange-700', // 3rd
   ]
+
+  // Don't render until game code is generated
+  if (!gameCode) {
+    return (
+      <div className='min-h-screen bg-linear-to-br from-indigo-900 via-blue-900 to-cyan-900 text-white flex items-center justify-center'>
+        <div className='text-2xl'>Laster...</div>
+      </div>
+    )
+  }
 
   return (
     <div className='min-h-screen bg-linear-to-br from-indigo-900 via-blue-900 to-cyan-900 text-white'>
