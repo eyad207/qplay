@@ -310,11 +310,14 @@ export default function HostPage() {
               <p className='text-lg opacity-70 mb-4'>
                 Skann QR-koden for å bli med:
               </p>
-              <div className='flex justify-center mb-4 bg-white p-4 rounded-xl'>
-                <QRCode
-                  value={`${process.env.NEXT_PUBLIC_BASE_URL}/play?code=${gameCode}`}
-                />
+              <div className='w-full flex justify-center'>
+                <div className='flex justify-center w-fit mb-4 bg-white p-4 rounded-xl'>
+                  <QRCode
+                    value={`${process.env.NEXT_PUBLIC_BASE_URL}/play?code=${gameCode}`}
+                  />
+                </div>
               </div>
+
               <div className='text-xl opacity-70'>
                 {players.length === 0
                   ? 'Venter på spillere...'
