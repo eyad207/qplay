@@ -1,12 +1,12 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { getPusherClient } from '@/lib/pusher'
 import { AnswerColor } from '@/lib/types'
 import type { Channel } from 'pusher-js'
 
-export default function PlayPage() {
+function PlayPageContent() {
   const searchParams = useSearchParams()
   const [gameCode, setGameCode] = useState('')
   const [playerName, setPlayerName] = useState('')
@@ -127,7 +127,7 @@ export default function PlayPage() {
     ]
 
   return (
-    <div className='min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 text-white flex flex-col'>
+    <div className='min-h-screen bg-linear-to-br from-indigo-900 via-blue-900 to-cyan-900 text-white flex flex-col'>
       {/* Join Screen */}
       {gameStatus === 'join' && (
         <div className='flex-1 flex flex-col items-center justify-center p-8'>
@@ -245,5 +245,19 @@ export default function PlayPage() {
         </div>
       )}
     </div>
+  )
+}
+
+export default function PlayPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className='min-h-screen bg-linear-to-br from-indigo-900 via-blue-900 to-cyan-900 text-white flex items-center justify-center'>
+          <div className='text-2xl'>Laster...</div>
+        </div>
+      }
+    >
+      <PlayPageContent />
+    </Suspense>
   )
 }
