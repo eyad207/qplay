@@ -21,7 +21,6 @@ export default function HostPage() {
   const [answers, setAnswers] = useState<PlayerAnswer[]>([])
   const [timeLeft, setTimeLeft] = useState(0)
   const [gameCode] = useState(() => Math.floor(Math.random() * 900000) + 100000)
-  const [showScoreboard, setShowScoreboard] = useState(false)
 
   // Audio refs
   const ongoingSoundRef = useRef<HTMLAudioElement | null>(null)
@@ -53,7 +52,11 @@ export default function HostPage() {
       } else if (sound === 'pop') {
         // Create a simple beep sound using Web Audio API
         const audioContext = new (window.AudioContext ||
-          (window as any).webkitAudioContext)()
+          (
+            window as typeof window & {
+              webkitAudioContext: typeof AudioContext
+            }
+          ).webkitAudioContext)()
         const oscillator = audioContext.createOscillator()
         const gainNode = audioContext.createGain()
 
@@ -128,41 +131,6 @@ export default function HostPage() {
     }
   }, [gameCode])
 
-  // Timer countdown
-  useEffect(() => {
-    if (gameStatus !== 'question' || timeLeft <= 0) return
-
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer)
-          // Auto-show results when time runs out
-          setTimeout(() => showResults(), 500)
-          return 0
-        }
-        return prev - 1
-      })
-    }, 1000)
-
-    return () => clearInterval(timer)
-  }, [gameStatus, timeLeft])
-
-  // Check if all players have answered
-  useEffect(() => {
-    if (
-      gameStatus === 'question' &&
-      players.length > 0 &&
-      answers.length === players.length
-    ) {
-      // All players have answered - auto-show results
-      const timeout = setTimeout(() => {
-        playSound('roundFinished')
-        showResults()
-      }, 1000)
-      return () => clearTimeout(timeout)
-    }
-  }, [answers.length, players.length, gameStatus])
-
   const sendPusherEvent = useCallback(
     async (event: string, data: Record<string, unknown>) => {
       await fetch('/api/pusher', {
@@ -178,21 +146,7 @@ export default function HostPage() {
     [gameCode]
   )
 
-  const startGame = async () => {
-    await sendPusherEvent('quiz_started', {})
-    showQuestion(0)
-  }
-
-  const showQuestion = async (index: number) => {
-    setCurrentQuestionIndex(index)
-    setAnswers([])
-    setGameStatus('question')
-    setTimeLeft(questions[index].timeLimit)
-    await sendPusherEvent('show_question', { questionIndex: index })
-    playSound('ongoing')
-  }
-
-  const showResults = async () => {
+  const showResults = useCallback(async () => {
     setGameStatus('results')
     stopSound('ongoing')
     await sendPusherEvent('show_results', {
@@ -221,6 +175,55 @@ export default function HostPage() {
         return player
       })
     )
+  }, [currentQuestion, answers, timeLeft, sendPusherEvent])
+
+  // Timer countdown
+  useEffect(() => {
+    if (gameStatus !== 'question' || timeLeft <= 0) return
+
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer)
+          // Auto-show results when time runs out
+          setTimeout(() => showResults(), 500)
+          return 0
+        }
+        return prev - 1
+      })
+    }, 1000)
+
+    return () => clearInterval(timer)
+  }, [gameStatus, timeLeft, showResults])
+
+  // Check if all players have answered
+  useEffect(() => {
+    if (
+      gameStatus === 'question' &&
+      players.length > 0 &&
+      answers.length === players.length
+    ) {
+      // All players have answered - auto-show results
+      const timeout = setTimeout(() => {
+        playSound('roundFinished')
+        showResults()
+      }, 1000)
+      return () => clearTimeout(timeout)
+    }
+  }, [answers.length, players.length, gameStatus, showResults])
+
+  const startGame = async () => {
+    await sendPusherEvent('quiz_started', {})
+    showQuestion(0)
+  }
+
+  const showQuestion = async (index: number) => {
+    setCurrentQuestionIndex(index)
+    setAnswers([])
+    setGameStatus('question')
+    setTimeLeft(questions[index].timeLimit)
+    await sendPusherEvent('show_question', { questionIndex: index })
+    playSound('ongoing')
   }
 
   const showScoreboardScreen = () => {

@@ -8,7 +8,7 @@ import type { Channel } from 'pusher-js'
 
 function PlayPageContent() {
   const searchParams = useSearchParams()
-  const [gameCode, setGameCode] = useState('')
+  const [gameCode, setGameCode] = useState(() => searchParams.get('code') || '')
   const [playerName, setPlayerName] = useState('')
   const [playerId] = useState(() => Math.random().toString(36).substring(2, 10))
   const [channel, setChannel] = useState<Channel | null>(null)
@@ -18,13 +18,6 @@ function PlayPageContent() {
   const [selectedAnswer, setSelectedAnswer] = useState<AnswerColor | null>(null)
   const [correctAnswer, setCorrectAnswer] = useState<AnswerColor | null>(null)
   const [isConnected, setIsConnected] = useState(false)
-
-  useEffect(() => {
-    const code = searchParams.get('code')
-    if (code) {
-      setGameCode(code)
-    }
-  }, [searchParams])
 
   const sendPusherEvent = useCallback(
     async (event: string, data: Record<string, unknown>) => {
