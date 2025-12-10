@@ -2,7 +2,7 @@ import Link from 'next/link'
 
 export default function Home() {
   return (
-    <div className='min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 text-white'>
+    <div className='min-h-screen bg-linear-to-br from-purple-900 via-purple-800 to-indigo-900 text-white'>
       <div className='container mx-auto px-4 py-16 flex flex-col items-center justify-center min-h-screen'>
         {/* Logo */}
         <h1 className='text-7xl font-bold mb-4 tracking-tight'>
@@ -73,7 +73,7 @@ export default function Home() {
 
         {/* Footer */}
         <footer className='mt-16 text-sm opacity-50'>
-          Bygget med Next.js + Pusher for sanntidsoppdateringer
+          Bygget av Eyad Lazkani
         </footer>
       </div>
     </div>

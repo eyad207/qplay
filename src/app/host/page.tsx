@@ -42,6 +42,7 @@ export default function HostPage() {
     try {
       if (sound === 'ongoing' && ongoingSoundRef.current) {
         ongoingSoundRef.current.currentTime = 0
+        ongoingSoundRef.current.loop = true
         ongoingSoundRef.current.play()
       } else if (sound === 'roundFinished' && roundFinishedSoundRef.current) {
         roundFinishedSoundRef.current.currentTime = 0
@@ -73,6 +74,18 @@ export default function HostPage() {
       }
     } catch (error) {
       console.error('Error playing sound:', error)
+    }
+  }
+
+  // Stop sound effect
+  const stopSound = (sound: 'ongoing') => {
+    try {
+      if (sound === 'ongoing' && ongoingSoundRef.current) {
+        ongoingSoundRef.current.pause()
+        ongoingSoundRef.current.currentTime = 0
+      }
+    } catch (error) {
+      console.error('Error stopping sound:', error)
     }
   }
 
@@ -181,6 +194,7 @@ export default function HostPage() {
 
   const showResults = async () => {
     setGameStatus('results')
+    stopSound('ongoing')
     await sendPusherEvent('show_results', {
       correctAnswer: currentQuestion.correctAnswer,
     })
