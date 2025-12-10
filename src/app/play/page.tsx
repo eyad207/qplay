@@ -1,11 +1,13 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { getPusherClient } from '@/lib/pusher'
 import { AnswerColor } from '@/lib/types'
 import type { Channel } from 'pusher-js'
 
 export default function PlayPage() {
+  const searchParams = useSearchParams()
   const [gameCode, setGameCode] = useState('')
   const [playerName, setPlayerName] = useState('')
   const [playerId] = useState(() => Math.random().toString(36).substring(2, 10))
@@ -16,6 +18,13 @@ export default function PlayPage() {
   const [selectedAnswer, setSelectedAnswer] = useState<AnswerColor | null>(null)
   const [correctAnswer, setCorrectAnswer] = useState<AnswerColor | null>(null)
   const [isConnected, setIsConnected] = useState(false)
+
+  useEffect(() => {
+    const code = searchParams.get('code')
+    if (code) {
+      setGameCode(code)
+    }
+  }, [searchParams])
 
   const sendPusherEvent = useCallback(
     async (event: string, data: Record<string, unknown>) => {

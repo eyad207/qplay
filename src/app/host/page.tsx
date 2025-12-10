@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { getPusherClient } from '@/lib/pusher'
 import { questions } from '@/lib/questions'
 import { AnswerColor, PlayerAnswer } from '@/lib/types'
+import QRCode from 'react-qr-code'
 
 interface Player {
   id: string
@@ -18,9 +19,7 @@ export default function HostPage() {
   const [players, setPlayers] = useState<Player[]>([])
   const [answers, setAnswers] = useState<PlayerAnswer[]>([])
   const [timeLeft, setTimeLeft] = useState(0)
-  const [gameCode] = useState(() =>
-    Math.random().toString(36).substring(2, 8).toUpperCase()
-  )
+  const [gameCode] = useState(() => Math.floor(Math.random() * 900000) + 100000)
 
   const currentQuestion = questions[currentQuestionIndex]
 
@@ -161,14 +160,12 @@ export default function HostPage() {
             <div className='bg-white/10 rounded-2xl p-12 mb-8'>
               <h2 className='text-2xl mb-4'>Koble til på mobilen:</h2>
               <p className='text-lg opacity-70 mb-4'>
-                Gå til{' '}
-                <span className='font-mono bg-black/30 px-2 py-1 rounded'>
-                  /play
-                </span>{' '}
-                og skriv inn koden:
+                Skann QR-koden for å bli med:
               </p>
-              <div className='text-8xl font-mono font-bold tracking-wider my-8'>
-                {gameCode}
+              <div className='flex justify-center mb-4'>
+                <QRCode
+                  value={`${process.env.NEXT_PUBLIC_BASE_URL}/play?code=${gameCode}`}
+                />
               </div>
               <div className='text-xl opacity-70'>
                 {players.length === 0
