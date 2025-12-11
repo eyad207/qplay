@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { getPusherClient } from '@/lib/pusher'
 import { AnswerColor } from '@/lib/types'
+import { questions, type Question } from '@/lib/questions'
 import type { Channel } from 'pusher-js'
 
 function PlayPageContent() {
@@ -18,6 +19,8 @@ function PlayPageContent() {
   const [selectedAnswer, setSelectedAnswer] = useState<AnswerColor | null>(null)
   const [correctAnswer, setCorrectAnswer] = useState<AnswerColor | null>(null)
   const [isConnected, setIsConnected] = useState(false)
+  const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null)
+  const [showButtons, setShowButtons] = useState(false)
 
   const sendPusherEvent = useCallback(
     async (event: string, data: Record<string, unknown>) => {
@@ -57,10 +60,13 @@ function PlayPageContent() {
       setGameStatus('waiting')
     })
 
-    ch.bind('show_question', () => {
+    ch.bind('show_question', (data: { questionIndex: number }) => {
       setGameStatus('question')
+      setCurrentQuestion(questions[data.questionIndex])
       setSelectedAnswer(null)
       setCorrectAnswer(null)
+      setShowButtons(false)
+      setTimeout(() => setShowButtons(true), 2000)
     })
 
     ch.bind('show_results', (data: { correctAnswer: AnswerColor }) => {
@@ -126,14 +132,16 @@ function PlayPageContent() {
         <div className='flex-1 flex flex-col items-center justify-center p-8'>
           <h1 className='text-4xl font-bold mb-8'>Qplay</h1>
           <div className='w-full max-w-sm space-y-4'>
-            <input
-              type='text'
-              placeholder='Skriv inn koden'
-              value={gameCode}
-              onChange={(e) => setGameCode(e.target.value.toUpperCase())}
-              className='w-full text-center text-2xl font-mono p-4 rounded-xl bg-white/20 placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/50'
-              maxLength={6}
-            />
+            {!gameCode && (
+              <input
+                type='text'
+                placeholder='Skriv inn koden'
+                value={gameCode}
+                onChange={(e) => setGameCode(e.target.value.toUpperCase())}
+                className='w-full text-center text-2xl font-mono p-4 rounded-xl bg-white/20 placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/50'
+                maxLength={6}
+              />
+            )}
             <input
               type='text'
               placeholder='Ditt navn'
@@ -166,17 +174,23 @@ function PlayPageContent() {
 
       {/* Question Screen - Color Buttons */}
       {gameStatus === 'question' && (
-        <div className='flex-1 grid grid-cols-2 gap-2 p-2'>
-          {colorButtons.map(({ color, bgClass, emoji }) => (
-            <button
-              key={color}
-              onClick={() => submitAnswer(color)}
-              className={`${bgClass} rounded-2xl flex items-center justify-center text-6xl transition-transform active:scale-95`}
-            >
-              {emoji}
-            </button>
-          ))}
-        </div>
+        showButtons ? (
+          <div className='flex-1 grid grid-cols-2 gap-2 p-2'>
+            {colorButtons.map(({ color, bgClass, emoji }) => (
+              <button
+                key={color}
+                onClick={() => submitAnswer(color)}
+                className={`${bgClass} rounded-2xl flex items-center justify-center text-6xl transition-transform active:scale-95`}
+              >
+                {emoji}
+              </button>
+            ))}
+          </div>
+        ) : (
+          <div className='flex-1 flex items-center justify-center p-8'>
+            <h2 className='text-2xl font-bold text-center'>{currentQuestion?.question}</h2>
+          </div>
+        )
       )}
 
       {/* Answered Screen */}
