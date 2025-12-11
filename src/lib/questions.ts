@@ -230,4 +230,16 @@ export const questions: Question[] = [
     correctAnswer: 'red',
     timeLimit: 20,
   },
+  {
+    id: 19,
+    question: '🧠 + 💡',
+    options: {
+      red: 'Idé',
+      blue: 'Hjernelys',
+      green: 'Brainstorm',
+      yellow: 'Kreativ tanke',
+    },
+    correctAnswer: 'red',
+    timeLimit: 20,
+  },
 ]
