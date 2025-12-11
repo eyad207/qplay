@@ -230,7 +230,7 @@ export default function HostPage() {
     setGameStatus('question')
     setTimeLeft(questions[index].timeLimit)
     setShowOptions(false)
-    setTimeout(() => setShowOptions(true), 2000)
+    setTimeout(() => setShowOptions(true), 4000)
     await sendPusherEvent('show_question', { questionIndex: index })
     playSound('ongoing')
   }
@@ -383,9 +383,21 @@ export default function HostPage() {
               </div>
             </div>
 
-            <div className='bg-white/10 backdrop-blur-md rounded-2xl p-12 mb-8 text-center border border-white/20 animate-bounce-in'>
-              <h2 className='text-4xl font-bold'>{currentQuestion.question}</h2>
-            </div>
+            {!showOptions ? (
+              <div className='min-h-screen flex items-center justify-center'>
+                <div className='bg-white/10 backdrop-blur-md rounded-2xl p-12 text-center border border-white/20 animate-bounce-in'>
+                  <h2 className='text-6xl font-bold'>
+                    {currentQuestion.question}
+                  </h2>
+                </div>
+              </div>
+            ) : (
+              <div className='bg-white/10 backdrop-blur-md rounded-2xl p-12 mb-8 text-center border border-white/20 animate-bounce-in'>
+                <h2 className='text-4xl font-bold'>
+                  {currentQuestion.question}
+                </h2>
+              </div>
+            )}
 
             {showOptions && (
               <div className='grid grid-cols-2 gap-4'>

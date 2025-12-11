@@ -66,7 +66,7 @@ function PlayPageContent() {
       setSelectedAnswer(null)
       setCorrectAnswer(null)
       setShowButtons(false)
-      setTimeout(() => setShowButtons(true), 2000)
+      setTimeout(() => setShowButtons(true), 4000)
     })
 
     ch.bind('show_results', (data: { correctAnswer: AnswerColor }) => {
