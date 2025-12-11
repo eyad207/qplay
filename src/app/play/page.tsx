@@ -173,8 +173,8 @@ function PlayPageContent() {
       )}
 
       {/* Question Screen - Color Buttons */}
-      {gameStatus === 'question' && (
-        showButtons ? (
+      {gameStatus === 'question' &&
+        (showButtons ? (
           <div className='flex-1 grid grid-cols-2 gap-2 p-2'>
             {colorButtons.map(({ color, bgClass, emoji }) => (
               <button
@@ -188,10 +188,11 @@ function PlayPageContent() {
           </div>
         ) : (
           <div className='flex-1 flex items-center justify-center p-8'>
-            <h2 className='text-2xl font-bold text-center'>{currentQuestion?.question}</h2>
+            <h2 className='text-2xl font-bold text-center'>
+              {currentQuestion?.question}
+            </h2>
           </div>
-        )
-      )}
+        ))}
 
       {/* Answered Screen */}
       {gameStatus === 'answered' && (
