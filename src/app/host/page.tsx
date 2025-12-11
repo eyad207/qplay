@@ -399,7 +399,9 @@ export default function HostPage() {
                         animation: 'slide-in 0.5s ease-out forwards',
                       }}
                     >
-                      <span className='text-3xl mr-4'>{colorLabels[color]}</span>
+                      <span className='text-3xl mr-4'>
+                        {colorLabels[color]}
+                      </span>
                       <span className='text-2xl font-bold'>
                         {currentQuestion.options[color]}
                       </span>
