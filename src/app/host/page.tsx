@@ -21,6 +21,7 @@ export default function HostPage() {
   const [answers, setAnswers] = useState<PlayerAnswer[]>([])
   const [timeLeft, setTimeLeft] = useState(0)
   const [gameCode, setGameCode] = useState('')
+  const [showOptions, setShowOptions] = useState(false)
 
   // Generate game code on client side to avoid hydration mismatch
   useEffect(() => {
@@ -228,6 +229,8 @@ export default function HostPage() {
     setAnswers([])
     setGameStatus('question')
     setTimeLeft(questions[index].timeLimit)
+    setShowOptions(false)
+    setTimeout(() => setShowOptions(true), 2000)
     await sendPusherEvent('show_question', { questionIndex: index })
     playSound('ongoing')
   }
@@ -384,34 +387,38 @@ export default function HostPage() {
               <h2 className='text-4xl font-bold'>{currentQuestion.question}</h2>
             </div>
 
-            <div className='grid grid-cols-2 gap-4'>
-              {(Object.keys(currentQuestion.options) as AnswerColor[]).map(
-                (color, idx) => (
-                  <div
-                    key={color}
-                    className={`${colorClasses[color]} rounded-xl p-8 text-center shadow-2xl transform hover:scale-105 transition-all`}
-                    style={{
-                      animationDelay: `${idx * 0.1}s`,
-                      animation: 'slide-in 0.5s ease-out forwards',
-                    }}
-                  >
-                    <span className='text-3xl mr-4'>{colorLabels[color]}</span>
-                    <span className='text-2xl font-bold'>
-                      {currentQuestion.options[color]}
-                    </span>
-                  </div>
-                )
-              )}
-            </div>
+            {showOptions && (
+              <div className='grid grid-cols-2 gap-4'>
+                {(Object.keys(currentQuestion.options) as AnswerColor[]).map(
+                  (color, idx) => (
+                    <div
+                      key={color}
+                      className={`${colorClasses[color]} rounded-xl p-8 text-center shadow-2xl transform hover:scale-105 transition-all`}
+                      style={{
+                        animationDelay: `${idx * 0.1}s`,
+                        animation: 'slide-in 0.5s ease-out forwards',
+                      }}
+                    >
+                      <span className='text-3xl mr-4'>{colorLabels[color]}</span>
+                      <span className='text-2xl font-bold'>
+                        {currentQuestion.options[color]}
+                      </span>
+                    </div>
+                  )
+                )}
+              </div>
+            )}
 
-            <div className='text-center mt-8'>
-              <button
-                onClick={showResults}
-                className='bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white text-xl font-bold px-8 py-3 rounded-xl transition-all transform hover:scale-105 shadow-lg'
-              >
-                Vis fasit →
-              </button>
-            </div>
+            {showOptions && (
+              <div className='text-center mt-8'>
+                <button
+                  onClick={showResults}
+                  className='bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white text-xl font-bold px-8 py-3 rounded-xl transition-all transform hover:scale-105 shadow-lg'
+                >
+                  Vis fasit →
+                </button>
+              </div>
+            )}
           </div>
         )}
 
