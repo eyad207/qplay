@@ -384,7 +384,7 @@ export default function HostPage() {
             </div>
 
             {!showOptions ? (
-              <div className='min-h-screen flex items-center justify-center'>
+              <div className='min-h-screen flex items-center justify-center pb-70'>
                 <div className='bg-white/10 backdrop-blur-md rounded-2xl p-12 text-center border border-white/20 animate-bounce-in'>
                   <h2 className='text-6xl font-bold'>
                     {currentQuestion.question}
