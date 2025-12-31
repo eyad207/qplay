@@ -1,245 +1,174 @@
 export interface Question {
-  id: number
-  question: string
+  id: number;
+  question: string;
   options: {
-    red: string
-    blue: string
-    green: string
-    yellow: string
-  }
-  correctAnswer: 'red' | 'blue' | 'green' | 'yellow'
-  timeLimit: number // seconds
+    red: string;
+    blue: string;
+    green: string;
+    yellow: string;
+  };
+  correctAnswer: "red" | "blue" | "green" | "yellow";
+  timeLimit: number; // seconds
 }
 
 export const questions: Question[] = [
   {
     id: 1,
-    question: 'Har et piano flest svarte eller hvite tangenter?',
+    question: "Hva er hovedstaden i Canada?",
     options: {
-      red: 'Flest svarte',
-      blue: 'Flest hvite',
-      green: 'Likt antall',
-      yellow: 'Ingen av delene',
+      red: "Toronto",
+      blue: "Vancouver",
+      green: "Ottawa",
+      yellow: "Montreal",
     },
-    correctAnswer: 'blue',
+    correctAnswer: "green",
     timeLimit: 20,
   },
   {
     id: 2,
-    question:
-      'Sant eller usant: Ingen håndballspillere har lov til å berøre ballen med foten.',
+    question: "Hvor mange kontinenter finnes det i verden?",
     options: {
-      red: 'Sant',
-      blue: 'Usant',
-      green: '__',
-      yellow: '__',
+      red: "5",
+      blue: "6",
+      green: "7",
+      yellow: "8",
     },
-    correctAnswer: 'red',
+    correctAnswer: "green",
     timeLimit: 20,
   },
   {
     id: 3,
-    question: 'Hvilken farge får du hvis du blander blått og rødt?',
+    question: "Hvilket hav ligger mellom Europa og Amerika?",
     options: {
-      red: 'Grønn',
-      blue: 'Oransje',
-      green: 'Lilla',
-      yellow: 'Brun',
+      red: "Stillehavet",
+      blue: "Atlanterhavet",
+      green: "Indiahavet",
+      yellow: "Nordishavet",
     },
-    correctAnswer: 'green',
+    correctAnswer: "blue",
     timeLimit: 20,
   },
+
   {
     id: 4,
-    question:
-      'Hvilken amerikansk stat er den eneste som starter med bokstaven «P»?',
+    question: "Hvilket år startet andre verdenskrig?",
     options: {
-      red: 'Pennsylvania',
-      blue: 'Portland',
-      green: 'Phoenix',
-      yellow: 'Providence',
+      red: "1918",
+      blue: "1939",
+      green: "1945",
+      yellow: "1950",
     },
-    correctAnswer: 'red',
+    correctAnswer: "blue",
     timeLimit: 20,
   },
   {
     id: 5,
-    question: 'Hva er verdens største øy?',
+    question: "Hva er valutaen i Storbritannia?",
     options: {
-      red: 'Madagaskar',
-      blue: 'Ny-Guinea',
-      green: 'Grønland',
-      yellow: 'Borneo',
+      red: "Euro",
+      blue: "Dollar",
+      green: "Pund",
+      yellow: "Kroner",
     },
-    correctAnswer: 'green',
+    correctAnswer: "green",
     timeLimit: 20,
   },
   {
     id: 6,
-    question: 'Hvilket land har størst areal av Norge og Sverige?',
+    question: "Hvilket organ pumper blod i kroppen?",
     options: {
-      red: 'Norge',
-      blue: 'Sverige',
-      green: 'De er like store',
-      yellow: 'Vet ikke',
+      red: "Lungene",
+      blue: "Hjertet",
+      green: "Leveren",
+      yellow: "Nyrene",
     },
-    correctAnswer: 'blue',
+    correctAnswer: "blue",
     timeLimit: 20,
   },
+
   {
     id: 7,
-    question: 'Hva er navnet på det største havet?',
+    question: "Hvilket land har flest innbyggere i verden?",
     options: {
-      red: 'Atlanterhavet',
-      blue: 'Det indiske hav',
-      green: 'Stillehavet',
-      yellow: 'Nordishavet',
+      red: "USA",
+      blue: "India",
+      green: "Kina",
+      yellow: "Russland",
     },
-    correctAnswer: 'green',
+    correctAnswer: "blue",
     timeLimit: 20,
   },
   {
     id: 8,
-    question: 'Hva heter hovedstaden i Spania?',
+    question: "Hva er frysepunktet for vann i Celsius?",
     options: {
-      red: 'Barcelona',
-      blue: 'Madrid',
-      green: 'Sevilla',
-      yellow: 'Valencia',
+      red: "0",
+      blue: "10",
+      green: "32",
+      yellow: "-10",
     },
-    correctAnswer: 'blue',
+    correctAnswer: "red",
     timeLimit: 20,
   },
+
   {
     id: 9,
-    question: 'Hva er Japans nasjonalsport?',
+    question: "Hvilket verdenshav er størst?",
     options: {
-      red: 'Karate',
-      blue: 'Sumo',
-      green: 'Judo',
-      yellow: 'Kendo',
+      red: "Atlanterhavet",
+      blue: "Indiahavet",
+      green: "Stillehavet",
+      yellow: "Nordishavet",
     },
-    correctAnswer: 'blue',
+    correctAnswer: "green",
     timeLimit: 20,
   },
   {
     id: 10,
-    question: 'Hvilket land har størst sjokoladekonsum per innbygger?',
+    question: "Hva heter Norges høyeste fjell?",
     options: {
-      red: 'Belgia',
-      blue: 'Tyskland',
-      green: 'Sveits',
-      yellow: 'Frankrike',
+      red: "Galdhøpiggen",
+      blue: "Glittertind",
+      green: "Gaustatoppen",
+      yellow: "Snøhetta",
     },
-    correctAnswer: 'green',
+    correctAnswer: "red",
     timeLimit: 20,
   },
   {
     id: 11,
-    question: 'Hvor mange år sitter den franske presidenten?',
+    question: "Hvilken planet er kjent som den røde planeten?",
     options: {
-      red: '4 år',
-      blue: '5 år',
-      green: '6 år',
-      yellow: '7 år',
+      red: "Venus",
+      blue: "Mars",
+      green: "Jupiter",
+      yellow: "Saturn",
     },
-    correctAnswer: 'blue',
+    correctAnswer: "blue",
     timeLimit: 20,
   },
   {
     id: 12,
-    question: 'Hvor mange norske konger har hatt navnet Harald?',
+    question: "Hva veier mest?",
     options: {
-      red: '2',
-      blue: '3',
-      green: '4',
-      yellow: '5',
+      red: "1 kg fjær",
+      blue: "1 kg stein",
+      green: "Begge veier like mye",
+      yellow: "Avhenger av størrelsen",
     },
-    correctAnswer: 'green',
+    correctAnswer: "green",
     timeLimit: 20,
   },
   {
     id: 13,
-    question: 'På et tastatur, hvilken bokstav er mellom Q og E?',
+    question: "Hvilken måned har færrest dager?",
     options: {
-      red: 'W',
-      blue: 'A',
-      green: 'R',
-      yellow: 'T',
+      red: "Januar",
+      blue: "Februar",
+      green: "April",
+      yellow: "November",
     },
-    correctAnswer: 'red',
+    correctAnswer: "blue",
     timeLimit: 20,
   },
-  {
-    id: 14,
-    question: 'Hvor mange tidssoner har Russland?',
-    options: {
-      red: '6',
-      blue: '9',
-      green: '11',
-      yellow: '13',
-    },
-    correctAnswer: 'green',
-    timeLimit: 20,
-  },
-  {
-    id: 15,
-    question: 'Hvilket land har flest øyer i verden?',
-    options: {
-      red: 'Norge',
-      blue: 'Indonesia',
-      green: 'Filippinene',
-      yellow: 'Sverige',
-    },
-    correctAnswer: 'yellow',
-    timeLimit: 20,
-  },
-  {
-    id: 16,
-    question: 'Hva er hovedstaden i Canada?',
-    options: {
-      red: 'Toronto',
-      blue: 'Vancouver',
-      green: 'Ottawa',
-      yellow: 'Montreal',
-    },
-    correctAnswer: 'green',
-    timeLimit: 20,
-  },
-  {
-    id: 17,
-    question: 'Hva er den lengste elven i verden?',
-    options: {
-      red: 'Nilen',
-      blue: 'Amazonas',
-      green: 'Yangtze',
-      yellow: 'Mississippi',
-    },
-    correctAnswer: 'red',
-    timeLimit: 20,
-  },
-  {
-    id: 18,
-    question: 'Sted i Norge: 😂 + 🦶',
-    options: {
-      red: 'Lofoten',
-      blue: 'Lillestrøm',
-      green: 'Foten',
-      yellow: 'Lom',
-    },
-    correctAnswer: 'red',
-    timeLimit: 20,
-  },
-  {
-    id: 19,
-    question: '🧠 + 💡',
-    options: {
-      red: 'Idé',
-      blue: 'Hjernelys',
-      green: 'Brainstorm',
-      yellow: 'Kreativ tanke',
-    },
-    correctAnswer: 'red',
-    timeLimit: 20,
-  },
-]
+];
