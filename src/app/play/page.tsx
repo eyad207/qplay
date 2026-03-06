@@ -132,16 +132,14 @@ function PlayPageContent() {
         <div className='flex-1 flex flex-col items-center justify-center p-8'>
           <h1 className='text-4xl font-bold mb-8'>Qplay</h1>
           <div className='w-full max-w-sm space-y-4'>
-            {!gameCode && (
-              <input
-                type='text'
-                placeholder='Skriv inn koden'
-                value={gameCode}
-                onChange={(e) => setGameCode(e.target.value.toUpperCase())}
-                className='w-full text-center text-2xl font-mono p-4 rounded-xl bg-white/20 placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/50'
-                maxLength={6}
-              />
-            )}
+            <input
+              type='text'
+              placeholder='Skriv inn koden'
+              value={gameCode}
+              onChange={(e) => setGameCode(e.target.value.toUpperCase())}
+              className='w-full text-center text-2xl font-mono p-4 rounded-xl bg-white/20 placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/50'
+              maxLength={6}
+            />
             <input
               type='text'
               placeholder='Ditt navn'
