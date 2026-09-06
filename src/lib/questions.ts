@@ -160,5 +160,80 @@ export const questions: Question[] = [
     },
     correctAnswer: "red",
     timeLimit: 40,
+  },
+  {
+    id: 13,
+    question: "ما العلامة التي قد تدل على أن الرسالة احتيالية؟",
+    options: {
+      red: "تطلب التصرف بسرعة أو تخويفك",
+      blue: "تحتوي على تحية عادية",
+      green: "تصل في وقت مناسب",
+      yellow: "تحتوي على اسمك فقط",
+    },
+    correctAnswer: "red",
+    timeLimit: 20,
+  },
+  {
+    id: 14,
+    question: "ماذا يجب أن تفعل قبل الضغط على رابط في رسالة؟",
+    options: {
+      red: "تتأكد من مصدر الرابط",
+      blue: "تضغط عليه بسرعة",
+      green: "ترسله إلى أصدقائك",
+      yellow: "تدخل كلمة المرور أولًا",
+    },
+    correctAnswer: "red",
+    timeLimit: 20,
+  },
+  
+  {
+    id: 15,
+    question: "ماذا يمكن أن تطلب منك رسالة QR احتيالية؟",
+    options: {
+      red: "تسجيل الدخول أو دفع المال",
+      blue: "رسم صورة فقط",
+      green: "إغلاق الهاتف دائمًا",
+      yellow: "قراءة كتاب",
+    },
+    correctAnswer: "red",
+    timeLimit: 20,
+  },
+ 
+  {
+    id: 16,
+    question: "ما أفضل مكان لفتح رابط البنك؟",
+    options: {
+      red: "من التطبيق أو الموقع الرسمي",
+      blue: "من رسالة مجهولة",
+      green: "من إعلان غريب",
+      yellow: "من أي رابط قصير",
+    },
+    correctAnswer: "red",
+    timeLimit: 20,
+  },
+  
+  {
+    id: 17,
+    question: "ما الفرق المهم بين HTTP وHTTPS؟",
+    options: {
+      red: "HTTPS أكثر أمانًا ويحمي البيانات بشكل أفضل",
+      blue: "HTTP أسرع دائمًا",
+      green: "لا يوجد أي فرق",
+      yellow: "HTTPS يعمل دون إنترنت",
+    },
+    correctAnswer: "red",
+    timeLimit: 20,
+  },
+  {
+    id: 18,
+    question: "ماذا يجب أن تفعل عند استخدام Wi-Fi عام؟",
+    options: {
+      red: "تجنب إدخال المعلومات الحساسة إذا لم تكن الشبكة آمنة",
+      blue: "ترسل كلمة المرور للجميع",
+      green: "تستخدم نفس كلمة المرور لكل الحسابات",
+      yellow: "تفتح أي رابط يظهر لك",
+    },
+    correctAnswer: "red",
+    timeLimit: 20,
   }
 ];

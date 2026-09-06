@@ -25,6 +25,12 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+.quiz-text {
+  direction: rtl;
+  unicode-bidi: plaintext;
+  text-align: center;
+}
+
 /* Animations for quiz */
 @keyframes pulse-scale {
   0%, 100% {

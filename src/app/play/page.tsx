@@ -197,7 +197,8 @@ function PlayPageContent() {
                 <button
                   key={color}
                   onClick={() => submitAnswer(color)}
-                  className={`${bgClass} rounded-2xl flex items-center justify-center text-6xl transition-transform active:scale-95`}
+                  dir="rtl"
+                  className={`${bgClass} quiz-text rounded-2xl flex items-center justify-center text-6xl transition-transform active:scale-95`}
                 >
                   {emoji}
                 </button>
@@ -216,7 +217,9 @@ function PlayPageContent() {
                   className="max-h-[68vh] max-w-full rounded-xl object-contain"
                 />
               )}
-              <h2 className="text-2xl font-bold">{currentQuestion?.question}</h2>
+              <h2 dir="rtl" className="quiz-text text-2xl font-bold">
+                {currentQuestion?.question}
+              </h2>
             </div>
           </div>
         ))}

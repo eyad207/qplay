@@ -396,7 +396,7 @@ export default function HostPage() {
                       className='mx-auto mb-6 max-h-[62vh] max-w-full rounded-xl object-contain'
                     />
                   )}
-                  <h2 className='text-6xl font-bold'>
+                  <h2 dir='rtl' className='quiz-text text-6xl font-bold'>
                     {currentQuestion.question}
                   </h2>
                 </div>
@@ -412,7 +412,7 @@ export default function HostPage() {
                     className='mx-auto mb-6 max-h-[55vh] max-w-full rounded-xl object-contain'
                   />
                 )}
-                <h2 className='text-4xl font-bold'>
+                <h2 dir='rtl' className='quiz-text text-4xl font-bold'>
                   {currentQuestion.question}
                 </h2>
               </div>
@@ -433,7 +433,7 @@ export default function HostPage() {
                       <span className='text-3xl mr-4'>
                         {colorLabels[color]}
                       </span>
-                      <span className='text-2xl font-bold'>
+                      <span dir='rtl' className='quiz-text text-2xl font-bold'>
                         {currentQuestion.options[color]}
                       </span>
                     </div>
@@ -494,7 +494,7 @@ export default function HostPage() {
                       <div className='text-3xl mb-2'>
                         {colorLabels[color]} {isCorrect && '✓'}
                       </div>
-                      <div className='text-2xl font-bold'>
+                      <div dir='rtl' className='quiz-text text-2xl font-bold'>
                         {currentQuestion.options[color]}
                       </div>
                       <div className='text-xl mt-2 opacity-80'>
