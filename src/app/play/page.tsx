@@ -228,6 +228,15 @@ function PlayPageContent() {
       {gameStatus === "answered" && (
         <div className="flex-1 flex flex-col items-center justify-center p-8">
           <div className="text-center">
+            {currentQuestion?.image && (
+              <Image
+                src={currentQuestion.image}
+                alt="مثال على رسالة بريد إلكتروني"
+                width={1600}
+                height={900}
+                className="mx-auto mb-6 max-h-[55vh] max-w-full rounded-xl object-contain"
+              />
+            )}
             <div className="text-6xl mb-4">✓</div>
             <h2 className="text-2xl font-bold mb-2">Svar registrert!</h2>
             <p className="text-xl opacity-70">Venter på resultatet...</p>
@@ -244,6 +253,15 @@ function PlayPageContent() {
       {gameStatus === "result" && (
         <div className="flex-1 flex flex-col items-center justify-center p-8">
           <div className="text-center">
+            {currentQuestion?.image && (
+              <Image
+                src={currentQuestion.image}
+                alt="مثال على رسالة بريد إلكتروني"
+                width={1600}
+                height={900}
+                className="mx-auto mb-6 max-h-[55vh] max-w-full rounded-xl object-contain"
+              />
+            )}
             {selectedAnswer === correctAnswer ? (
               <>
                 <div className="text-8xl mb-4">🎉</div>
