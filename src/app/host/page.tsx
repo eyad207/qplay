@@ -13,6 +13,16 @@ interface Player {
   score: number
 }
 
+interface HostSession {
+  gameCode: string
+  gameStatus: 'lobby' | 'question' | 'results' | 'scoreboard' | 'finished'
+  currentQuestionIndex: number
+  players: Player[]
+  answers: PlayerAnswer[]
+  timeLeft: number
+  showOptions: boolean
+}
+
 export default function HostPage() {
   const [gameStatus, setGameStatus] = useState<
     'lobby' | 'question' | 'results' | 'scoreboard' | 'finished'
@@ -23,12 +33,47 @@ export default function HostPage() {
   const [timeLeft, setTimeLeft] = useState(0)
   const [gameCode, setGameCode] = useState('')
   const [showOptions, setShowOptions] = useState(false)
+  const [isRestored, setIsRestored] = useState(false)
 
-  // Generate game code on client side to avoid hydration mismatch
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+    const savedSession = localStorage.getItem('qplay-host-session')
+
+    if (savedSession) {
+      try {
+        const session = JSON.parse(savedSession) as HostSession
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setGameCode(session.gameCode)
+        setGameStatus(session.gameStatus)
+        setCurrentQuestionIndex(session.currentQuestionIndex)
+        setPlayers(session.players)
+        setAnswers(session.answers)
+        setTimeLeft(session.timeLeft)
+        setShowOptions(session.showOptions)
+        setIsRestored(true)
+        return
+      } catch {
+        localStorage.removeItem('qplay-host-session')
+      }
+    }
+
     setGameCode((Math.floor(Math.random() * 900000) + 100000).toString())
+    setIsRestored(true)
   }, [])
+
+  const sendPusherEvent = useCallback(
+    async (event: string, data: Record<string, unknown>) => {
+      await fetch('/api/pusher', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          channel: `quiz-${gameCode}`,
+          event,
+          data,
+        }),
+      })
+    },
+    [gameCode]
+  )
 
   // Audio refs
   const ongoingSoundRef = useRef<HTMLAudioElement | null>(null)
@@ -36,6 +81,56 @@ export default function HostPage() {
   const winSoundRef = useRef<HTMLAudioElement | null>(null)
 
   const currentQuestion = questions[currentQuestionIndex]
+
+  const stateRef = useRef({
+    gameStatus,
+    currentQuestionIndex,
+    players,
+    answers,
+    timeLeft,
+    showOptions,
+  })
+  useEffect(() => {
+    stateRef.current = {
+      gameStatus,
+      currentQuestionIndex,
+      players,
+      answers,
+      timeLeft,
+      showOptions,
+    }
+  }, [
+    gameStatus,
+    currentQuestionIndex,
+    players,
+    answers,
+    timeLeft,
+    showOptions,
+  ])
+
+  useEffect(() => {
+    if (!isRestored || !gameCode) return
+
+    const session: HostSession = {
+      gameCode,
+      gameStatus,
+      currentQuestionIndex,
+      players,
+      answers,
+      timeLeft,
+      showOptions,
+    }
+    localStorage.setItem('qplay-host-session', JSON.stringify(session))
+  }, [
+    isRestored,
+    gameCode,
+    gameStatus,
+    currentQuestionIndex,
+    players,
+    answers,
+    timeLeft,
+    showOptions,
+  ])
 
   // Initialize audio
   useEffect(() => {
@@ -102,6 +197,8 @@ export default function HostPage() {
 
   // Initialize Pusher
   useEffect(() => {
+    if (!gameCode) return
+
     const pusher = getPusherClient()
     const ch = pusher.subscribe(`quiz-${gameCode}`)
 
@@ -115,6 +212,22 @@ export default function HostPage() {
             ...prev,
             { id: data.playerId, name: data.playerName, score: 0 },
           ]
+        })
+
+        const state = stateRef.current
+        const playerAnswer = state.answers.find(
+          (answer) => answer.playerId === data.playerId
+        )
+        sendPusherEvent('sync_state', {
+          playerId: data.playerId,
+          status: state.gameStatus,
+          questionIndex: state.currentQuestionIndex,
+          correctAnswer:
+            state.gameStatus === 'results'
+              ? questions[state.currentQuestionIndex].correctAnswer
+              : undefined,
+          showOptions: state.showOptions,
+          playerAnswer: playerAnswer?.answer,
         })
       }
     )
@@ -137,22 +250,7 @@ export default function HostPage() {
       ch.unbind_all()
       pusher.unsubscribe(`quiz-${gameCode}`)
     }
-  }, [gameCode])
-
-  const sendPusherEvent = useCallback(
-    async (event: string, data: Record<string, unknown>) => {
-      await fetch('/api/pusher', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          channel: `quiz-${gameCode}`,
-          event,
-          data,
-        }),
-      })
-    },
-    [gameCode]
-  )
+  }, [gameCode, sendPusherEvent])
 
   const showResults = useCallback(async () => {
     setGameStatus('results')
