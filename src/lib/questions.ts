@@ -158,7 +158,7 @@ export const questions: Question[] = [
       green: "إنها رسالة مدرسية",
       yellow: "لا يمكن معرفة ذلك",
     },
-    correctAnswer: "blue",
+    correctAnswer: "red",
     timeLimit: 40,
   }
 ];
