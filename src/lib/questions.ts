@@ -83,7 +83,7 @@ export const questions: Question[] = [
       green: "إنها رسالة مدرسية",
       yellow: "لا يمكن معرفة ذلك",
     },
-    correctAnswer: "red",
+    correctAnswer: "blue",
     timeLimit: 20,
   },
   {

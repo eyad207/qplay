@@ -5,6 +5,7 @@ import { getPusherClient } from '@/lib/pusher'
 import { questions } from '@/lib/questions'
 import { AnswerColor, PlayerAnswer } from '@/lib/types'
 import QRCode from 'react-qr-code'
+import Image from 'next/image'
 
 interface Player {
   id: string
@@ -387,10 +388,12 @@ export default function HostPage() {
               <div className='min-h-screen flex items-center justify-center pb-70'>
                 <div className='bg-white/10 backdrop-blur-md rounded-2xl p-8 text-center border border-white/20 animate-bounce-in'>
                   {currentQuestion.image && (
-                    <img
+                    <Image
                       src={currentQuestion.image}
                       alt='مثال على رسالة بريد إلكتروني'
-                      className='mx-auto mb-6 max-h-[48vh] max-w-full rounded-xl object-contain'
+                      width={1600}
+                      height={900}
+                      className='mx-auto mb-6 max-h-[62vh] max-w-full rounded-xl object-contain'
                     />
                   )}
                   <h2 className='text-6xl font-bold'>
@@ -401,10 +404,12 @@ export default function HostPage() {
             ) : (
               <div className='bg-white/10 backdrop-blur-md rounded-2xl p-12 mb-8 text-center border border-white/20 animate-bounce-in'>
                 {currentQuestion.image && (
-                  <img
+                  <Image
                     src={currentQuestion.image}
                     alt='مثال على رسالة بريد إلكتروني'
-                    className='mx-auto mb-6 max-h-[42vh] max-w-full rounded-xl object-contain'
+                    width={1600}
+                    height={900}
+                    className='mx-auto mb-6 max-h-[55vh] max-w-full rounded-xl object-contain'
                   />
                 )}
                 <h2 className='text-4xl font-bold'>

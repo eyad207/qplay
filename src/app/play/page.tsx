@@ -6,6 +6,7 @@ import { getPusherClient } from "@/lib/pusher";
 import { AnswerColor } from "@/lib/types";
 import { questions, type Question } from "@/lib/questions";
 import type { Channel } from "pusher-js";
+import Image from "next/image";
 
 function PlayPageContent() {
   const searchParams = useSearchParams();
@@ -181,11 +182,13 @@ function PlayPageContent() {
         (showButtons ? (
           <div className="flex-1 flex flex-col gap-3 p-3">
             {currentQuestion?.image && (
-              <div className="flex justify-center max-h-[30vh] overflow-hidden rounded-xl bg-white">
-                <img
+              <div className="flex min-h-[36vh] justify-center max-h-[42vh] overflow-hidden rounded-xl bg-white">
+                <Image
                   src={currentQuestion.image}
                   alt="مثال على رسالة بريد إلكتروني"
-                  className="h-full max-h-[30vh] w-full object-contain"
+                  width={1600}
+                  height={900}
+                  className="h-full max-h-[42vh] w-full object-contain"
                 />
               </div>
             )}
@@ -205,10 +208,12 @@ function PlayPageContent() {
           <div className="flex-1 flex items-center justify-center p-8">
             <div className="flex max-h-full flex-col items-center gap-5 text-center">
               {currentQuestion?.image && (
-                <img
+                <Image
                   src={currentQuestion.image}
                   alt="مثال على رسالة بريد إلكتروني"
-                  className="max-h-[55vh] max-w-full rounded-xl object-contain"
+                  width={1600}
+                  height={900}
+                  className="max-h-[68vh] max-w-full rounded-xl object-contain"
                 />
               )}
               <h2 className="text-2xl font-bold">{currentQuestion?.question}</h2>
