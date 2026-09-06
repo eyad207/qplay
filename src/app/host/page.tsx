@@ -385,7 +385,14 @@ export default function HostPage() {
 
             {!showOptions ? (
               <div className='min-h-screen flex items-center justify-center pb-70'>
-                <div className='bg-white/10 backdrop-blur-md rounded-2xl p-12 text-center border border-white/20 animate-bounce-in'>
+                <div className='bg-white/10 backdrop-blur-md rounded-2xl p-8 text-center border border-white/20 animate-bounce-in'>
+                  {currentQuestion.image && (
+                    <img
+                      src={currentQuestion.image}
+                      alt='مثال على رسالة بريد إلكتروني'
+                      className='mx-auto mb-6 max-h-[48vh] max-w-full rounded-xl object-contain'
+                    />
+                  )}
                   <h2 className='text-6xl font-bold'>
                     {currentQuestion.question}
                   </h2>
@@ -393,6 +400,13 @@ export default function HostPage() {
               </div>
             ) : (
               <div className='bg-white/10 backdrop-blur-md rounded-2xl p-12 mb-8 text-center border border-white/20 animate-bounce-in'>
+                {currentQuestion.image && (
+                  <img
+                    src={currentQuestion.image}
+                    alt='مثال على رسالة بريد إلكتروني'
+                    className='mx-auto mb-6 max-h-[42vh] max-w-full rounded-xl object-contain'
+                  />
+                )}
                 <h2 className='text-4xl font-bold'>
                   {currentQuestion.question}
                 </h2>

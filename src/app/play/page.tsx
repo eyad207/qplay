@@ -179,22 +179,40 @@ function PlayPageContent() {
       {/* Question Screen - Color Buttons */}
       {gameStatus === "question" &&
         (showButtons ? (
-          <div className="flex-1 grid grid-cols-2 gap-2 p-2">
-            {colorButtons.map(({ color, bgClass, emoji }) => (
-              <button
-                key={color}
-                onClick={() => submitAnswer(color)}
-                className={`${bgClass} rounded-2xl flex items-center justify-center text-6xl transition-transform active:scale-95`}
-              >
-                {emoji}
-              </button>
-            ))}
+          <div className="flex-1 flex flex-col gap-3 p-3">
+            {currentQuestion?.image && (
+              <div className="flex justify-center max-h-[30vh] overflow-hidden rounded-xl bg-white">
+                <img
+                  src={currentQuestion.image}
+                  alt="مثال على رسالة بريد إلكتروني"
+                  className="h-full max-h-[30vh] w-full object-contain"
+                />
+              </div>
+            )}
+            <div className="grid flex-1 grid-cols-2 gap-2">
+              {colorButtons.map(({ color, bgClass, emoji }) => (
+                <button
+                  key={color}
+                  onClick={() => submitAnswer(color)}
+                  className={`${bgClass} rounded-2xl flex items-center justify-center text-6xl transition-transform active:scale-95`}
+                >
+                  {emoji}
+                </button>
+              ))}
+            </div>
           </div>
         ) : (
           <div className="flex-1 flex items-center justify-center p-8">
-            <h2 className="text-2xl font-bold text-center">
-              {currentQuestion?.question}
-            </h2>
+            <div className="flex max-h-full flex-col items-center gap-5 text-center">
+              {currentQuestion?.image && (
+                <img
+                  src={currentQuestion.image}
+                  alt="مثال على رسالة بريد إلكتروني"
+                  className="max-h-[55vh] max-w-full rounded-xl object-contain"
+                />
+              )}
+              <h2 className="text-2xl font-bold">{currentQuestion?.question}</h2>
+            </div>
           </div>
         ))}
 
