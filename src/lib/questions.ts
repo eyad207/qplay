@@ -84,7 +84,7 @@ export const questions: Question[] = [
       yellow: "لا يمكن معرفة ذلك",
     },
     correctAnswer: "blue",
-    timeLimit: 20,
+    timeLimit: 40,
   },
   {
     id: 7,
@@ -97,10 +97,23 @@ export const questions: Question[] = [
       yellow: "لا يمكن قراءة الرسالة",
     },
     correctAnswer: "red",
-    timeLimit: 20,
+    timeLimit: 40,
   },
   {
     id: 8,
+    question: "هل هذه رسالة احتيالية؟",
+    image: "/img3_true.png",
+    options: {
+      red: "نعم، إنها احتيالية",
+      blue: "لا، إنها حقيقية",
+      green: "إنها رسالة مدرسية",
+      yellow: "لا يمكن معرفة ذلك",
+    },
+    correctAnswer: "red",
+    timeLimit: 40,
+  },
+  {
+    id: 9,
     question: "هل رمز QR آمن دائمًا؟",
     options: {
       red: "نعم، دائمًا",
@@ -112,7 +125,7 @@ export const questions: Question[] = [
     timeLimit: 20,
   },
   {
-    id: 9,
+    id: 10,
     question: "ماذا تفعل إذا ضغطت بالخطأ على رابط مشبوه؟",
     options: {
       red: "تغلق الصفحة ولا تدخل أي معلومات",
@@ -124,7 +137,7 @@ export const questions: Question[] = [
     timeLimit: 20,
   },
   {
-    id: 10,
+    id: 11,
     question: "ما هو الذكاء الاصطناعي؟",
     options: {
       red: "تقنية تساعد الأجهزة على أداء مهام ذكية",
