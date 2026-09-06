@@ -14,7 +14,9 @@ function PlayPageContent() {
     () => searchParams.get("code") || "",
   );
   const [playerName, setPlayerName] = useState("");
-  const [playerId, setPlayerId] = useState("");
+  const [playerId] = useState(() =>
+    Math.random().toString(36).substring(2, 10),
+  );
   const [channel, setChannel] = useState<Channel | null>(null);
   const [gameStatus, setGameStatus] = useState<
     "join" | "waiting" | "question" | "answered" | "result" | "finished"
@@ -26,38 +28,6 @@ function PlayPageContent() {
   const [isConnected, setIsConnected] = useState(false);
   const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null);
   const [showButtons, setShowButtons] = useState(false);
-  const [shouldReconnect, setShouldReconnect] = useState(false);
-
-  useEffect(() => {
-    const savedSession = localStorage.getItem("qplay-player-session");
-    if (!savedSession) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setPlayerId(Math.random().toString(36).substring(2, 10));
-      return;
-    }
-
-    try {
-      const session = JSON.parse(savedSession) as {
-        gameCode?: string;
-        playerName?: string;
-        playerId?: string;
-      };
-
-      if (session.playerId && session.playerName && session.gameCode) {
-        setPlayerId(session.playerId);
-        setPlayerName(session.playerName);
-        if (!searchParams.get("code")) {
-          setGameCode(session.gameCode);
-        }
-        setShouldReconnect(true);
-        return;
-      }
-    } catch {
-      localStorage.removeItem("qplay-player-session");
-    }
-
-    setPlayerId(Math.random().toString(36).substring(2, 10));
-  }, [searchParams]);
 
   const sendPusherEvent = useCallback(
     async (event: string, data: Record<string, unknown>) => {
@@ -77,13 +47,9 @@ function PlayPageContent() {
 
   const joinGame = useCallback(async () => {
     if (!gameCode.trim() || !playerName.trim()) return;
-    if (!gameCode.trim() || !playerName.trim() || !playerId) return;
 
     const code = gameCode.toUpperCase();
-    localStorage.setItem(
-      "qplay-player-session",
-      JSON.stringify({ gameCode: code, playerName: playerName.trim(), playerId }),
-    );
+    window.history.replaceState(null, "", `/play?code=${encodeURIComponent(code)}`);
     const pusher = getPusherClient();
     const ch = pusher.subscribe(`quiz-${code}`);
     setChannel(ch);
@@ -116,47 +82,10 @@ function PlayPageContent() {
       setGameStatus("result");
     });
 
-    ch.bind(
-      "sync_state",
-      (data: {
-        playerId: string;
-        status: "lobby" | "question" | "results" | "scoreboard" | "finished";
-        questionIndex: number;
-        correctAnswer?: AnswerColor;
-        showOptions: boolean;
-        playerAnswer?: AnswerColor;
-      }) => {
-        if (data.playerId !== playerId) return;
-
-        if (data.status === "question") {
-          setCurrentQuestion(questions[data.questionIndex]);
-          setShowButtons(data.showOptions);
-          setCorrectAnswer(null);
-          setSelectedAnswer(data.playerAnswer || null);
-          setGameStatus(data.playerAnswer ? "answered" : "question");
-        } else if (data.status === "results") {
-          setCurrentQuestion(questions[data.questionIndex]);
-          setCorrectAnswer(data.correctAnswer || null);
-          setSelectedAnswer(data.playerAnswer || null);
-          setGameStatus("result");
-        } else if (data.status === "finished") {
-          setGameStatus("finished");
-        } else {
-          setGameStatus("waiting");
-        }
-      },
-    );
-
     ch.bind("quiz_finished", () => {
       setGameStatus("finished");
     });
   }, [gameCode, playerName, playerId, sendPusherEvent]);
-
-  useEffect(() => {
-    if (!shouldReconnect || channel || !playerId || !gameCode || !playerName) return;
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    joinGame();
-  }, [shouldReconnect, channel, playerId, gameCode, playerName, joinGame]);
 
   // Re-attach event handlers when channel or gameCode changes
   useEffect(() => {
@@ -169,10 +98,10 @@ function PlayPageContent() {
     });
   }, [isConnected, channel, playerId, playerName, sendPusherEvent]);
 
-  // Keep the player registered during refreshes and browser sleep/wake cycles.
   useEffect(() => {
     return () => {
       if (channel) {
+        sendPusherEvent("player_left", { playerId });
         channel.unbind_all();
       }
     };

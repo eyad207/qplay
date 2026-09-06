@@ -13,16 +13,6 @@ interface Player {
   score: number
 }
 
-interface HostSession {
-  gameCode: string
-  gameStatus: 'lobby' | 'question' | 'results' | 'scoreboard' | 'finished'
-  currentQuestionIndex: number
-  players: Player[]
-  answers: PlayerAnswer[]
-  timeLeft: number
-  showOptions: boolean
-}
-
 export default function HostPage() {
   const [gameStatus, setGameStatus] = useState<
     'lobby' | 'question' | 'results' | 'scoreboard' | 'finished'
@@ -31,34 +21,19 @@ export default function HostPage() {
   const [players, setPlayers] = useState<Player[]>([])
   const [answers, setAnswers] = useState<PlayerAnswer[]>([])
   const [timeLeft, setTimeLeft] = useState(0)
-  const [gameCode, setGameCode] = useState('')
+  const [gameCode, setGameCode] = useState(() => {
+    if (typeof window === 'undefined') return ''
+    return new URLSearchParams(window.location.search).get('code') || ''
+  })
   const [showOptions, setShowOptions] = useState(false)
-  const [isRestored, setIsRestored] = useState(false)
 
   useEffect(() => {
-    const savedSession = localStorage.getItem('qplay-host-session')
-
-    if (savedSession) {
-      try {
-        const session = JSON.parse(savedSession) as HostSession
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setGameCode(session.gameCode)
-        setGameStatus(session.gameStatus)
-        setCurrentQuestionIndex(session.currentQuestionIndex)
-        setPlayers(session.players)
-        setAnswers(session.answers)
-        setTimeLeft(session.timeLeft)
-        setShowOptions(session.showOptions)
-        setIsRestored(true)
-        return
-      } catch {
-        localStorage.removeItem('qplay-host-session')
-      }
-    }
-
-    setGameCode((Math.floor(Math.random() * 900000) + 100000).toString())
-    setIsRestored(true)
-  }, [])
+    if (gameCode) return
+    const newGameCode = (Math.floor(Math.random() * 900000) + 100000).toString()
+    window.history.replaceState(null, '', `/host?code=${newGameCode}`)
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setGameCode(newGameCode)
+  }, [gameCode])
 
   const sendPusherEvent = useCallback(
     async (event: string, data: Record<string, unknown>) => {
@@ -82,55 +57,6 @@ export default function HostPage() {
 
   const currentQuestion = questions[currentQuestionIndex]
 
-  const stateRef = useRef({
-    gameStatus,
-    currentQuestionIndex,
-    players,
-    answers,
-    timeLeft,
-    showOptions,
-  })
-  useEffect(() => {
-    stateRef.current = {
-      gameStatus,
-      currentQuestionIndex,
-      players,
-      answers,
-      timeLeft,
-      showOptions,
-    }
-  }, [
-    gameStatus,
-    currentQuestionIndex,
-    players,
-    answers,
-    timeLeft,
-    showOptions,
-  ])
-
-  useEffect(() => {
-    if (!isRestored || !gameCode) return
-
-    const session: HostSession = {
-      gameCode,
-      gameStatus,
-      currentQuestionIndex,
-      players,
-      answers,
-      timeLeft,
-      showOptions,
-    }
-    localStorage.setItem('qplay-host-session', JSON.stringify(session))
-  }, [
-    isRestored,
-    gameCode,
-    gameStatus,
-    currentQuestionIndex,
-    players,
-    answers,
-    timeLeft,
-    showOptions,
-  ])
 
   // Initialize audio
   useEffect(() => {
@@ -214,21 +140,6 @@ export default function HostPage() {
           ]
         })
 
-        const state = stateRef.current
-        const playerAnswer = state.answers.find(
-          (answer) => answer.playerId === data.playerId
-        )
-        sendPusherEvent('sync_state', {
-          playerId: data.playerId,
-          status: state.gameStatus,
-          questionIndex: state.currentQuestionIndex,
-          correctAnswer:
-            state.gameStatus === 'results'
-              ? questions[state.currentQuestionIndex].correctAnswer
-              : undefined,
-          showOptions: state.showOptions,
-          playerAnswer: playerAnswer?.answer,
-        })
       }
     )
 
