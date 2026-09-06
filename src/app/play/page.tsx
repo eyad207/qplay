@@ -14,9 +14,7 @@ function PlayPageContent() {
     () => searchParams.get("code") || "",
   );
   const [playerName, setPlayerName] = useState("");
-  const [playerId] = useState(() =>
-    Math.random().toString(36).substring(2, 10),
-  );
+  const [playerId, setPlayerId] = useState("");
   const [channel, setChannel] = useState<Channel | null>(null);
   const [gameStatus, setGameStatus] = useState<
     "join" | "waiting" | "question" | "answered" | "result" | "finished"
@@ -28,6 +26,33 @@ function PlayPageContent() {
   const [isConnected, setIsConnected] = useState(false);
   const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null);
   const [showButtons, setShowButtons] = useState(false);
+  const [shouldReconnect, setShouldReconnect] = useState(false);
+
+  useEffect(() => {
+    const code = searchParams.get("code")?.toUpperCase();
+    if (!code) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setPlayerId(Math.random().toString(36).substring(2, 10));
+      return;
+    }
+
+    const savedPlayer = localStorage.getItem(`qplay-player-${code}`);
+    if (savedPlayer) {
+      try {
+        const player = JSON.parse(savedPlayer) as { id: string; name: string };
+        if (player.id && player.name) {
+          setPlayerId(player.id);
+          setPlayerName(player.name);
+          setShouldReconnect(true);
+          return;
+        }
+      } catch {
+        localStorage.removeItem(`qplay-player-${code}`);
+      }
+    }
+
+    setPlayerId(Math.random().toString(36).substring(2, 10));
+  }, [searchParams]);
 
   const sendPusherEvent = useCallback(
     async (event: string, data: Record<string, unknown>) => {
@@ -46,10 +71,14 @@ function PlayPageContent() {
   );
 
   const joinGame = useCallback(async () => {
-    if (!gameCode.trim() || !playerName.trim()) return;
+    if (!gameCode.trim() || !playerName.trim() || !playerId) return;
 
     const code = gameCode.toUpperCase();
     window.history.replaceState(null, "", `/play?code=${encodeURIComponent(code)}`);
+    localStorage.setItem(
+      `qplay-player-${code}`,
+      JSON.stringify({ id: playerId, name: playerName.trim() }),
+    );
     const pusher = getPusherClient();
     const ch = pusher.subscribe(`quiz-${code}`);
     setChannel(ch);
@@ -82,10 +111,45 @@ function PlayPageContent() {
       setGameStatus("result");
     });
 
+    ch.bind(
+      "sync_state",
+      (data: {
+        playerId: string;
+        status: "lobby" | "question" | "results" | "scoreboard" | "finished";
+        questionIndex: number;
+        correctAnswer?: AnswerColor;
+        showOptions: boolean;
+        playerAnswer?: AnswerColor;
+      }) => {
+        if (data.playerId !== playerId) return;
+
+        setCurrentQuestion(questions[data.questionIndex]);
+        setShowButtons(data.showOptions);
+        setSelectedAnswer(data.playerAnswer || null);
+        setCorrectAnswer(data.correctAnswer || null);
+
+        if (data.status === "question") {
+          setGameStatus(data.playerAnswer ? "answered" : "question");
+        } else if (data.status === "results") {
+          setGameStatus("result");
+        } else if (data.status === "finished") {
+          setGameStatus("finished");
+        } else {
+          setGameStatus("waiting");
+        }
+      },
+    );
+
     ch.bind("quiz_finished", () => {
       setGameStatus("finished");
     });
   }, [gameCode, playerName, playerId, sendPusherEvent]);
+
+  useEffect(() => {
+    if (!shouldReconnect || channel || !gameCode || !playerName || !playerId) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    joinGame();
+  }, [shouldReconnect, channel, gameCode, playerName, playerId, joinGame]);
 
   // Re-attach event handlers when channel or gameCode changes
   useEffect(() => {
@@ -101,11 +165,10 @@ function PlayPageContent() {
   useEffect(() => {
     return () => {
       if (channel) {
-        sendPusherEvent("player_left", { playerId });
         channel.unbind_all();
       }
     };
-  }, [channel, playerId, sendPusherEvent]);
+  }, [channel]);
 
   const submitAnswer = async (color: AnswerColor) => {
     setSelectedAnswer(color);

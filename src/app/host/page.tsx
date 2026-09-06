@@ -13,6 +13,15 @@ interface Player {
   score: number
 }
 
+interface HostGameState {
+  gameStatus: 'lobby' | 'question' | 'results' | 'scoreboard' | 'finished'
+  currentQuestionIndex: number
+  players: Player[]
+  answers: PlayerAnswer[]
+  timeLeft: number
+  showOptions: boolean
+}
+
 export default function HostPage() {
   const [gameStatus, setGameStatus] = useState<
     'lobby' | 'question' | 'results' | 'scoreboard' | 'finished'
@@ -26,6 +35,7 @@ export default function HostPage() {
     return new URLSearchParams(window.location.search).get('code') || ''
   })
   const [showOptions, setShowOptions] = useState(false)
+  const [isGameRestored, setIsGameRestored] = useState(false)
 
   useEffect(() => {
     if (gameCode) return
@@ -33,6 +43,28 @@ export default function HostPage() {
     window.history.replaceState(null, '', `/host?code=${newGameCode}`)
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setGameCode(newGameCode)
+  }, [gameCode])
+
+  useEffect(() => {
+    if (!gameCode) return
+
+    const savedGame = localStorage.getItem(`qplay-host-${gameCode}`)
+    if (savedGame) {
+      try {
+        const game = JSON.parse(savedGame) as HostGameState
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setGameStatus(game.gameStatus)
+        setCurrentQuestionIndex(game.currentQuestionIndex)
+        setPlayers(game.players)
+        setAnswers(game.answers)
+        setTimeLeft(game.timeLeft)
+        setShowOptions(game.showOptions)
+      } catch {
+        localStorage.removeItem(`qplay-host-${gameCode}`)
+      }
+    }
+
+    setIsGameRestored(true)
   }, [gameCode])
 
   const sendPusherEvent = useCallback(
@@ -56,6 +88,44 @@ export default function HostPage() {
   const winSoundRef = useRef<HTMLAudioElement | null>(null)
 
   const currentQuestion = questions[currentQuestionIndex]
+
+  const gameStateRef = useRef<HostGameState>({
+    gameStatus,
+    currentQuestionIndex,
+    players,
+    answers,
+    timeLeft,
+    showOptions,
+  })
+
+  useEffect(() => {
+    gameStateRef.current = {
+      gameStatus,
+      currentQuestionIndex,
+      players,
+      answers,
+      timeLeft,
+      showOptions,
+    }
+  }, [gameStatus, currentQuestionIndex, players, answers, timeLeft, showOptions])
+
+  useEffect(() => {
+    if (!gameCode || !isGameRestored) return
+
+    localStorage.setItem(
+      `qplay-host-${gameCode}`,
+      JSON.stringify(gameStateRef.current)
+    )
+  }, [
+    gameCode,
+    isGameRestored,
+    gameStatus,
+    currentQuestionIndex,
+    players,
+    answers,
+    timeLeft,
+    showOptions,
+  ])
 
 
   // Initialize audio
@@ -140,6 +210,21 @@ export default function HostPage() {
           ]
         })
 
+        const game = gameStateRef.current
+        const playerAnswer = game.answers.find(
+          (answer) => answer.playerId === data.playerId
+        )
+        sendPusherEvent('sync_state', {
+          playerId: data.playerId,
+          status: game.gameStatus,
+          questionIndex: game.currentQuestionIndex,
+          correctAnswer:
+            game.gameStatus === 'results'
+              ? questions[game.currentQuestionIndex].correctAnswer
+              : undefined,
+          showOptions: game.showOptions,
+          playerAnswer: playerAnswer?.answer,
+        })
       }
     )
 
@@ -152,10 +237,6 @@ export default function HostPage() {
         })
       }
     )
-
-    ch.bind('player_left', (data: { playerId: string }) => {
-      setPlayers((prev) => prev.filter((p) => p.id !== data.playerId))
-    })
 
     return () => {
       ch.unbind_all()
