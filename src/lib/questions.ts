@@ -148,4 +148,17 @@ export const questions: Question[] = [
     correctAnswer: "red",
     timeLimit: 20,
   },
+  {
+    id: 12,
+    image: "/img4_true.png",
+    question: "هل هذه رسالة احتيالية؟",
+    options: {
+      red: "نعم، إنها احتيالية",
+      blue: "لا، إنها حقيقية",
+      green: "إنها رسالة مدرسية",
+      yellow: "لا يمكن معرفة ذلك",
+    },
+    correctAnswer: "blue",
+    timeLimit: 40,
+  }
 ];
