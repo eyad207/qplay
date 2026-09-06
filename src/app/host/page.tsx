@@ -557,10 +557,19 @@ export default function HostPage() {
         {gameStatus === 'results' && currentQuestion && (
           <div className='animate-fade-in'>
             <div className='text-center mb-8'>
-              <h2 className='text-3xl font-bold mb-4'>
+              {currentQuestion.image && (
+                <Image
+                  src={currentQuestion.image}
+                  alt='مثال على رسالة بريد إلكتروني'
+                  width={1600}
+                  height={900}
+                  className='mx-auto mb-6 max-h-[55vh] max-w-full rounded-xl object-contain'
+                />
+              )}
+              <h2 dir='rtl' className='quiz-text text-3xl font-bold mb-4'>
                 {currentQuestion.question}
               </h2>
-              <p className='text-xl opacity-70'>
+              <p dir='rtl' className='quiz-text text-xl opacity-70'>
                 Riktig svar:{' '}
                 <span className='font-bold text-green-400 animate-pulse'>
                   {currentQuestion.options[currentQuestion.correctAnswer]}
