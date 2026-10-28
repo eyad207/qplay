@@ -1,11 +1,13 @@
 "use client";
 
-import { useEffect, useState, useCallback, Suspense } from "react";
+import { useEffect, useState, useCallback, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { getPusherClient } from "@/lib/pusher";
+import {
+  acquirePusherChannel,
+  type PusherChannelLease,
+} from "@/lib/pusher-client";
 import { AnswerColor } from "@/lib/types";
 import { questions, type Question } from "@/lib/questions";
-import type { Channel } from "pusher-js";
 import Image from "next/image";
 
 function PlayPageContent() {
@@ -15,7 +17,6 @@ function PlayPageContent() {
   );
   const [playerName, setPlayerName] = useState("");
   const [playerId, setPlayerId] = useState("");
-  const [channel, setChannel] = useState<Channel | null>(null);
   const [gameStatus, setGameStatus] = useState<
     "join" | "waiting" | "question" | "answered" | "result" | "finished"
   >("join");
@@ -23,10 +24,18 @@ function PlayPageContent() {
     null,
   );
   const [correctAnswer, setCorrectAnswer] = useState<AnswerColor | null>(null);
-  const [isConnected, setIsConnected] = useState(false);
   const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null);
   const [showButtons, setShowButtons] = useState(false);
   const [shouldReconnect, setShouldReconnect] = useState(false);
+  const playerSubscriptionRef = useRef<{
+    lease: PusherChannelLease;
+    release: () => void;
+  } | null>(null);
+  const isJoiningRef = useRef(false);
+  const [isJoining, setIsJoining] = useState(false);
+  const showButtonsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
 
   useEffect(() => {
     const code = searchParams.get("code")?.toUpperCase();
@@ -35,6 +44,8 @@ function PlayPageContent() {
       setPlayerId(Math.random().toString(36).substring(2, 10));
       return;
     }
+
+    setGameCode(code);
 
     const savedPlayer = localStorage.getItem(`qplay-player-${code}`);
     if (savedPlayer) {
@@ -71,7 +82,18 @@ function PlayPageContent() {
   );
 
   const joinGame = useCallback(async () => {
-    if (!gameCode.trim() || !playerName.trim() || !playerId) return;
+    if (
+      !gameCode.trim() ||
+      !playerName.trim() ||
+      !playerId ||
+      isJoiningRef.current ||
+      playerSubscriptionRef.current
+    ) {
+      return;
+    }
+
+    isJoiningRef.current = true;
+    setIsJoining(true);
 
     const code = gameCode.toUpperCase();
     window.history.replaceState(null, "", `/play?code=${encodeURIComponent(code)}`);
@@ -79,96 +101,125 @@ function PlayPageContent() {
       `qplay-player-${code}`,
       JSON.stringify({ id: playerId, name: playerName.trim() }),
     );
-    const pusher = getPusherClient();
-    const ch = pusher.subscribe(`quiz-${code}`);
-    setChannel(ch);
+    const lease = acquirePusherChannel(`quiz-${code}`);
+    const ch = lease.channel;
     setGameCode(code);
 
-    ch.bind("pusher:subscription_succeeded", () => {
-      setIsConnected(true);
+    const handleSubscriptionSucceeded = () => {
+      isJoiningRef.current = false;
+      setIsJoining(false);
       sendPusherEvent("player_joined", {
         playerId,
         playerName: playerName.trim(),
       });
       setGameStatus("waiting");
-    });
+    };
 
-    ch.bind("quiz_started", () => {
+    const handleQuizStarted = () => {
       setGameStatus("waiting");
-    });
+    };
 
-    ch.bind("show_question", (data: { questionIndex: number }) => {
+    const handleShowQuestion = (data: { questionIndex: number }) => {
       setGameStatus("question");
       setCurrentQuestion(questions[data.questionIndex]);
       setSelectedAnswer(null);
       setCorrectAnswer(null);
       setShowButtons(false);
-      setTimeout(() => setShowButtons(true), 4000);
-    });
+      if (showButtonsTimeoutRef.current) {
+        clearTimeout(showButtonsTimeoutRef.current);
+      }
+      showButtonsTimeoutRef.current = setTimeout(
+        () => setShowButtons(true),
+        4000,
+      );
+    };
 
-    ch.bind("show_results", (data: { correctAnswer: AnswerColor }) => {
+    const handleShowResults = (data: { correctAnswer: AnswerColor }) => {
       setCorrectAnswer(data.correctAnswer);
       setGameStatus("result");
-    });
+    };
 
-    ch.bind(
-      "sync_state",
-      (data: {
-        playerId: string;
-        status: "lobby" | "question" | "results" | "scoreboard" | "finished";
-        questionIndex: number;
-        correctAnswer?: AnswerColor;
-        showOptions: boolean;
-        playerAnswer?: AnswerColor;
-      }) => {
-        if (data.playerId !== playerId) return;
+    const handleSyncState = (data: {
+      playerId: string;
+      status: "lobby" | "question" | "results" | "scoreboard" | "finished";
+      questionIndex: number;
+      correctAnswer?: AnswerColor;
+      showOptions: boolean;
+      playerAnswer?: AnswerColor;
+    }) => {
+      if (data.playerId !== playerId) return;
 
-        setCurrentQuestion(questions[data.questionIndex]);
-        setShowButtons(data.showOptions);
-        setSelectedAnswer(data.playerAnswer || null);
-        setCorrectAnswer(data.correctAnswer || null);
+      setCurrentQuestion(questions[data.questionIndex]);
+      setShowButtons(data.showOptions);
+      setSelectedAnswer(data.playerAnswer || null);
+      setCorrectAnswer(data.correctAnswer || null);
 
-        if (data.status === "question") {
-          setGameStatus(data.playerAnswer ? "answered" : "question");
-        } else if (data.status === "results") {
-          setGameStatus("result");
-        } else if (data.status === "finished") {
-          setGameStatus("finished");
-        } else {
-          setGameStatus("waiting");
-        }
-      },
-    );
+      if (data.status === "question") {
+        setGameStatus(data.playerAnswer ? "answered" : "question");
+      } else if (data.status === "results") {
+        setGameStatus("result");
+      } else if (data.status === "finished") {
+        setGameStatus("finished");
+      } else {
+        setGameStatus("waiting");
+      }
+    };
 
-    ch.bind("quiz_finished", () => {
+    const handleQuizFinished = () => {
       setGameStatus("finished");
-    });
+    };
+
+    const releaseSubscription = () => {
+      ch.unbind("pusher:subscription_succeeded", handleSubscriptionSucceeded);
+      ch.unbind("quiz_started", handleQuizStarted);
+      ch.unbind("show_question", handleShowQuestion);
+      ch.unbind("show_results", handleShowResults);
+      ch.unbind("sync_state", handleSyncState);
+      ch.unbind("quiz_finished", handleQuizFinished);
+      lease.release();
+      if (playerSubscriptionRef.current?.lease === lease) {
+        playerSubscriptionRef.current = null;
+      }
+      isJoiningRef.current = false;
+    };
+
+    playerSubscriptionRef.current = { lease, release: releaseSubscription };
+    ch.bind("pusher:subscription_succeeded", handleSubscriptionSucceeded);
+    ch.bind("quiz_started", handleQuizStarted);
+    ch.bind("show_question", handleShowQuestion);
+    ch.bind("show_results", handleShowResults);
+    ch.bind("sync_state", handleSyncState);
+    ch.bind("quiz_finished", handleQuizFinished);
   }, [gameCode, playerName, playerId, sendPusherEvent]);
 
   useEffect(() => {
-    if (!shouldReconnect || channel || !gameCode || !playerName || !playerId) return;
+    if (
+      !shouldReconnect ||
+      playerSubscriptionRef.current ||
+      !gameCode ||
+      !playerName ||
+      !playerId
+    ) {
+      return;
+    }
     // eslint-disable-next-line react-hooks/set-state-in-effect
     joinGame();
-  }, [shouldReconnect, channel, gameCode, playerName, playerId, joinGame]);
-
-  // Re-attach event handlers when channel or gameCode changes
-  useEffect(() => {
-    if (!channel || !isConnected) return;
-
-    // Send join event after connection
-    sendPusherEvent("player_joined", {
-      playerId,
-      playerName: playerName.trim(),
-    });
-  }, [isConnected, channel, playerId, playerName, sendPusherEvent]);
+  }, [shouldReconnect, gameCode, playerName, playerId, joinGame]);
 
   useEffect(() => {
     return () => {
-      if (channel) {
-        channel.unbind_all();
+      if (showButtonsTimeoutRef.current) {
+        clearTimeout(showButtonsTimeoutRef.current);
       }
+      playerSubscriptionRef.current?.release();
     };
-  }, [channel]);
+  }, []);
+
+  useEffect(() => {
+    if (gameStatus === "finished") {
+      playerSubscriptionRef.current?.release();
+    }
+  }, [gameStatus]);
 
   const submitAnswer = async (color: AnswerColor) => {
     setSelectedAnswer(color);
@@ -220,7 +271,7 @@ function PlayPageContent() {
             />
             <button
               onClick={joinGame}
-              disabled={!gameCode.trim() || !playerName.trim()}
+              disabled={!gameCode.trim() || !playerName.trim() || isJoining}
               className="w-full bg-green-500 hover:bg-green-600 disabled:bg-gray-500 disabled:cursor-not-allowed text-white text-xl font-bold py-4 rounded-xl transition-all"
             >
               Bli med! 🎮

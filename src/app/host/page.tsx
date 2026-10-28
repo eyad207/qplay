@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback, useRef } from 'react'
-import { getPusherClient } from '@/lib/pusher'
+import { acquirePusherChannel } from '@/lib/pusher-client'
 import { questions } from '@/lib/questions'
 import { AnswerColor, PlayerAnswer } from '@/lib/types'
 import QRCode from 'react-qr-code'
@@ -86,6 +86,7 @@ export default function HostPage() {
   const ongoingSoundRef = useRef<HTMLAudioElement | null>(null)
   const roundFinishedSoundRef = useRef<HTMLAudioElement | null>(null)
   const winSoundRef = useRef<HTMLAudioElement | null>(null)
+  const releasePusherSubscriptionRef = useRef<(() => void) | null>(null)
 
   const currentQuestion = questions[currentQuestionIndex]
 
@@ -195,54 +196,66 @@ export default function HostPage() {
   useEffect(() => {
     if (!gameCode) return
 
-    const pusher = getPusherClient()
-    const ch = pusher.subscribe(`quiz-${gameCode}`)
+    const subscription = acquirePusherChannel(`quiz-${gameCode}`)
+    const ch = subscription.channel
 
-    ch.bind(
-      'player_joined',
-      (data: { playerId: string; playerName: string }) => {
-        setPlayers((prev) => {
-          if (prev.find((p) => p.id === data.playerId)) return prev
-          playSound('pop')
-          return [
-            ...prev,
-            { id: data.playerId, name: data.playerName, score: 0 },
-          ]
-        })
+    const handlePlayerJoined = (data: { playerId: string; playerName: string }) => {
+      setPlayers((prev) => {
+        if (prev.find((p) => p.id === data.playerId)) return prev
+        playSound('pop')
+        return [...prev, { id: data.playerId, name: data.playerName, score: 0 }]
+      })
 
-        const game = gameStateRef.current
-        const playerAnswer = game.answers.find(
-          (answer) => answer.playerId === data.playerId
-        )
-        sendPusherEvent('sync_state', {
-          playerId: data.playerId,
-          status: game.gameStatus,
-          questionIndex: game.currentQuestionIndex,
-          correctAnswer:
-            game.gameStatus === 'results'
-              ? questions[game.currentQuestionIndex].correctAnswer
-              : undefined,
-          showOptions: game.showOptions,
-          playerAnswer: playerAnswer?.answer,
-        })
-      }
-    )
-
-    ch.bind(
-      'player_answered',
-      (data: { playerId: string; answer: AnswerColor }) => {
-        setAnswers((prev) => {
-          if (prev.find((a) => a.playerId === data.playerId)) return prev
-          return [...prev, { ...data, timestamp: Date.now() }]
-        })
-      }
-    )
-
-    return () => {
-      ch.unbind_all()
-      pusher.unsubscribe(`quiz-${gameCode}`)
+      const game = gameStateRef.current
+      const playerAnswer = game.answers.find(
+        (answer) => answer.playerId === data.playerId
+      )
+      sendPusherEvent('sync_state', {
+        playerId: data.playerId,
+        status: game.gameStatus,
+        questionIndex: game.currentQuestionIndex,
+        correctAnswer:
+          game.gameStatus === 'results'
+            ? questions[game.currentQuestionIndex].correctAnswer
+            : undefined,
+        showOptions: game.showOptions,
+        playerAnswer: playerAnswer?.answer,
+      })
     }
+
+    const handlePlayerAnswered = (data: {
+      playerId: string
+      answer: AnswerColor
+    }) => {
+      setAnswers((prev) => {
+        if (prev.find((a) => a.playerId === data.playerId)) return prev
+        return [...prev, { ...data, timestamp: Date.now() }]
+      })
+    }
+
+    ch.bind('player_joined', handlePlayerJoined)
+    ch.bind('player_answered', handlePlayerAnswered)
+
+    const releaseSubscription = () => {
+      ch.unbind('player_joined', handlePlayerJoined)
+      ch.unbind('player_answered', handlePlayerAnswered)
+      subscription.release()
+      if (releasePusherSubscriptionRef.current === releaseSubscription) {
+        releasePusherSubscriptionRef.current = null
+      }
+    }
+
+    releasePusherSubscriptionRef.current = releaseSubscription
+    return releaseSubscription
   }, [gameCode, sendPusherEvent])
+
+  // A completed quiz has no further real-time interaction. Release the host
+  // lease immediately; a restart reloads the page and acquires a fresh lease.
+  useEffect(() => {
+    if (gameStatus === 'finished') {
+      releasePusherSubscriptionRef.current?.()
+    }
+  }, [gameStatus])
 
   const showResults = useCallback(async () => {
     setGameStatus('results')
